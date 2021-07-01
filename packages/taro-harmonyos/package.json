@@ -1,0 +1,39 @@
+{
+  "name": "@tarojs/plugin-platform-harmonyos",
+  "version": "3.2.13",
+  "description": "鸿蒙插件",
+  "author": "drchan",
+  "homepage": "https://github.com/nervjs/taro/tree/master/packages/taro-harmonyos#readme",
+  "license": "MIT",
+  "main": "index.js",
+  "keywords": [
+    "taro"
+  ],
+  "files": [
+    "index.js",
+    "dist",
+    "types"
+  ],
+  "types": "types/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NervJS/taro.git"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "bugs": {
+    "url": "https://github.com/NervJS/taro/issues"
+  },
+  "dependencies": {
+    "@tarojs/components": "3.2.13",
+    "@tarojs/helper": "3.2.13",
+    "@tarojs/service": "3.2.13",
+    "@tarojs/shared": "3.2.13",
+    "webpack-sources": "2.3.0"
+  },
+  "devDependencies": {
+    "@tarojs/runtime": "3.2.13"
+  }
+}

@@ -43,7 +43,8 @@
     "packages/taro-swan",
     "packages/taro-tt",
     "packages/taro-qq",
-    "packages/taro-jd"
+    "packages/taro-jd",
+    "packages/taro-harmonyos"
   ],
   "command": {
     "publish": {
