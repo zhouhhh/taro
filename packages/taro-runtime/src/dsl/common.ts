@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation */
-import { isFunction, EMPTY_OBJ, ensure, Shortcuts, isUndefined, isArray, warn } from '@tarojs/shared'
+import { isFunction, EMPTY_OBJ, ensure, isUndefined, isArray } from '@tarojs/shared'
 import { eventHandler } from '../dom/event'
 import { Current } from '../current'
 import { document } from '../bom/document'
@@ -97,12 +97,18 @@ export function createPageConfig (component: any, pageName?: string, data?: Reco
   let prepareMountList: (() => void)[] = []
 
   const config: PageInstance = {
-    onLoad (this: MpInstance, options, cb?: Func) {
+    onInit (this: MpInstance, options = {}, cb?: Func) {
       perf.start(PAGE_INIT)
 
       Current.page = this as any
       this.config = pageConfig || {}
       options.$taroTimestamp = Date.now()
+
+      Object.keys((this as any)._data).forEach(key => {
+        if (!/^root\b/.test(key) && !/^\$i18n\b/.test(key)) {
+          options[key] = (this as any)._data[key]
+        }
+      })
 
       // this.$taroPath 是页面唯一标识，不可变，因此页面参数 options 也不可变
       this.$taroPath = getPath(id, options)
@@ -111,7 +117,7 @@ export function createPageConfig (component: any, pageName?: string, data?: Reco
         this.$taroParams = Object.assign({}, options)
       }
 
-      const router = isBrowser ? this.$taroPath : this.route || this.__route__
+      const router = this.$taroPath
       Current.router = {
         params: this.$taroParams,
         path: addLeadingSlash(router),
@@ -146,7 +152,7 @@ export function createPageConfig (component: any, pageName?: string, data?: Reco
       safeExecute(this.$taroPath, 'onReady')
       this.onReady.called = true
     },
-    onUnload () {
+    onDestroy () {
       unmounting = true
       Current.app!.unmount!(this.$taroPath, () => {
         unmounting = false
@@ -163,7 +169,7 @@ export function createPageConfig (component: any, pageName?: string, data?: Reco
     onShow () {
       Current.page = this as any
       this.config = pageConfig || {}
-      const router = isBrowser ? this.$taroPath : this.route || this.__route__
+      const router = this.$taroPath
       Current.router = {
         params: this.$taroParams,
         path: addLeadingSlash(router),
@@ -184,59 +190,29 @@ export function createPageConfig (component: any, pageName?: string, data?: Reco
       safeExecute(this.$taroPath, 'onHide')
       eventCenter.trigger(getOnHideEventKey(id))
     },
-    onPullDownRefresh () {
-      return safeExecute(this.$taroPath, 'onPullDownRefresh')
+    onActive () {
+      return safeExecute(this.$taroPath, 'onActive')
     },
-    onReachBottom () {
-      return safeExecute(this.$taroPath, 'onReachBottom')
+    onInactive () {
+      return safeExecute(this.$taroPath, 'onInactive')
     },
-    onPageScroll (options) {
-      return safeExecute(this.$taroPath, 'onPageScroll', options)
+    onBackPress () {
+      return safeExecute(this.$taroPath, 'onBackPress')
     },
-    onResize (options) {
-      return safeExecute(this.$taroPath, 'onResize', options)
+    onNewRequest () {
+      return safeExecute(this.$taroPath, 'onNewRequest')
     },
-    onTabItemTap (options) {
-      return safeExecute(this.$taroPath, 'onTabItemTap', options)
+    onStartContinuation () {
+      return safeExecute(this.$taroPath, 'onStartContinuation')
     },
-    onTitleClick () {
-      return safeExecute(this.$taroPath, 'onTitleClick')
+    onSaveData () {
+      return safeExecute(this.$taroPath, 'onSaveData')
     },
-    onOptionMenuClick () {
-      return safeExecute(this.$taroPath, 'onOptionMenuClick')
+    onRestoreData () {
+      return safeExecute(this.$taroPath, 'onRestoreData')
     },
-    onPopMenuClick () {
-      return safeExecute(this.$taroPath, 'onPopMenuClick')
-    },
-    onPullIntercept () {
-      return safeExecute(this.$taroPath, 'onPullIntercept')
-    },
-    onAddToFavorites () {
-      return safeExecute(this.$taroPath, 'onAddToFavorites')
-    }
-  }
-
-  // onShareAppMessage 和 onShareTimeline 一样，会影响小程序右上方按钮的选项，因此不能默认注册。
-  if (component.onShareAppMessage ||
-      component.prototype?.onShareAppMessage ||
-      component.enableShareAppMessage) {
-    config.onShareAppMessage = function (options) {
-      const target = options.target
-      if (target != null) {
-        const id = target.id
-        const element = document.getElementById(id)
-        if (element != null) {
-          options.target!.dataset = element.dataset
-        }
-      }
-      return safeExecute(this.$taroPath, 'onShareAppMessage', options)
-    }
-  }
-  if (component.onShareTimeline ||
-      component.prototype?.onShareTimeline ||
-      component.enableShareTimeline) {
-    config.onShareTimeline = function () {
-      return safeExecute(this.$taroPath, 'onShareTimeline')
+    onCompleteContinuation () {
+      return safeExecute(this.$taroPath, 'onCompleteContinuation')
     }
   }
 
@@ -302,34 +278,9 @@ export function createComponentConfig (component: React.ComponentClass, componen
   return config
 }
 
-export function createRecursiveComponentConfig (componentName?: string) {
+export function createRecursiveComponentConfig () {
   return {
-    properties: {
-      i: {
-        type: Object,
-        value: {
-          [Shortcuts.NodeName]: 'view'
-        }
-      },
-      l: {
-        type: String,
-        value: ''
-      }
-    },
-    observers: {
-      i (val: Record<string, unknown>) {
-        warn(
-          val[Shortcuts.NodeName] === '#text',
-          `请在此元素外再套一层非 Text 元素：<text>${val[Shortcuts.Text]}</text>，详情：https://github.com/NervJS/taro/issues/6054`
-        )
-      }
-    },
-    options: {
-      addGlobalClass: true,
-      virtualHost: componentName !== 'custom-wrapper'
-    },
-    methods: {
-      eh: eventHandler
-    }
+    props: ['root'],
+    eh: eventHandler
   }
 }

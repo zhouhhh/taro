@@ -5,12 +5,11 @@ import { isFunction, ensure, EMPTY_OBJ } from '@tarojs/shared'
 import { Current } from '../current'
 import { AppInstance, ReactPageComponent, PageProps, Instance, ReactAppInstance } from './instance'
 import { document } from '../bom/document'
-import { getPageInstance, injectPageInstance, safeExecute, addLeadingSlash } from './common'
+import { injectPageInstance, safeExecute, addLeadingSlash } from './common'
 import { isBrowser } from '../env'
 import { options } from '../options'
-import { Reconciler, CurrentReconciler } from '../reconciler'
+import { Reconciler } from '../reconciler'
 import { incrementId } from '../utils'
-import { HOOKS_APP_ID } from './hooks'
 import type { Func } from '../utils/types'
 import { eventHandler } from '../dom/event'
 import { TaroRootElement } from '../dom/root'
@@ -237,7 +236,7 @@ export function createReactApp (App: React.ComponentClass, react: typeof React, 
       value: config
     },
 
-    onLaunch: {
+    onCreate: {
       enumerable: true,
       writable: true,
       value (options) {
@@ -273,67 +272,9 @@ export function createReactApp (App: React.ComponentClass, react: typeof React, 
           Object.defineProperties(this, descriptors)
         }
         this.$app = app
-
-        if (app != null && isFunction(app.onLaunch)) {
-          app.onLaunch(options)
-        }
-      }
-    },
-
-    onShow: {
-      enumerable: true,
-      writable: true,
-      value (options) {
-        const app = ref.current
-        Current.router = {
-          params: options?.query,
-          ...options
-        }
-        if (app != null && isFunction(app.componentDidShow)) {
-          app.componentDidShow(options)
-        }
-
-        // app useDidShow
-        triggerAppHook('componentDidShow')
-      }
-    },
-
-    onHide: {
-      enumerable: true,
-      writable: true,
-      value (options: unknown) {
-        const app = ref.current
-        if (app != null && isFunction(app.componentDidHide)) {
-          app.componentDidHide(options)
-        }
-
-        // app useDidHide
-        triggerAppHook('componentDidHide')
-      }
-    },
-
-    onPageNotFound: {
-      enumerable: true,
-      writable: true,
-      value (res: unknown) {
-        const app = ref.current
-        if (app != null && isFunction(app.onPageNotFound)) {
-          app.onPageNotFound(res)
-        }
       }
     }
   })
-
-  function triggerAppHook (lifecycle) {
-    const instance = getPageInstance(HOOKS_APP_ID)
-    if (instance) {
-      const app = ref.current
-      const func = CurrentReconciler.getLifecyle(instance, lifecycle)
-      if (Array.isArray(func)) {
-        func.forEach(cb => cb.apply(app))
-      }
-    }
-  }
 
   Current.app = app
   return Current.app

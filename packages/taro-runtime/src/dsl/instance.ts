@@ -55,8 +55,19 @@ export interface PageLifeCycle extends Show {
   onShareTimeline?(): void
   onAddToFavorites?(): void
   eh?(event: MpEvent): void
-  onLoad(options: Record<string, unknown>): void
-  onUnload(): void
+  onLoad?(options: Record<string, unknown>): void
+  onUnload?(): void
+  // harmonyos
+  onInit?(options: Record<string, unknown>): void
+  onDestroy?(): void
+  onActive?(): void
+  onInactive?(): void
+  onBackPress?(): void
+  onNewRequest?(): void
+  onStartContinuation?(): void
+  onSaveData?(): void
+  onRestoreData?(): void
+  onCompleteContinuation?(): void
 }
 
 export interface PageInstance extends PageLifeCycle {

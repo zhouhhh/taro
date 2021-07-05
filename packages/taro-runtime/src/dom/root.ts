@@ -146,14 +146,8 @@ export class TaroRootElement extends TaroElement {
             eventCenter.trigger(eventId)
           })
         } else {
-          ctx.setData(data, () => {
-            perf.stop(SET_DATA)
-            if (!this.pendingFlush) {
-              this.flushUpdateCallback()
-            }
-            if (initRender) {
-              perf.stop(PAGE_INIT)
-            }
+          Object.keys(data).forEach(path => {
+            (ctx as any).$set(path, data[path])
           })
         }
       }
