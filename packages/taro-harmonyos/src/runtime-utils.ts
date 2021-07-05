@@ -11,5 +11,8 @@ export const hostConfig = {
     if (event.type === 'click' && comps.includes(tagName)) {
       event.type = 'tap'
     }
+  },
+  getPathIndex (indexOfNode) {
+    return indexOfNode
   }
 }
